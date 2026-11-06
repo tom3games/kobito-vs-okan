@@ -16,6 +16,6 @@
 - snd/fridge_loop.wav: 100 CC0 SFX #2 の loop_machine / rubberduck / CC0
 
 ## 人物と絵
-- assets/chars/*: KayKit Adventurers 2.0 / Kay Lousberg / CC0（色は塗り替え）
+- img/hero_atlas.webp: 主人公の切り絵。小人シリーズのために画像生成で作成
 - img/*.webp: 画像生成で作った架空の人物と小道具（art/prompts がプロンプト、art/key.py が切り抜き）
 - 舞台（畳・ふすま・たんす・マッチ箱など）はコードで作った形とテクスチャ

@@ -1,76 +1,46 @@
-// 主人公: KayKit Adventurers の Ranger（CC0）をティッシュの白に塗り替え、横向きに走らせる。体の高さ 2.1
+// 主人公: 画像生成の切り絵（img/hero_atlas.webp）。横向きの紙で、動きで絵を替える。紙は判定より少し大きく 3.3（小さいと顔が読めない）。当たり判定は shared/sim.js のまま
 import * as THREE from 'three'
-import { GLTFLoader } from '../vendor/jsm/loaders/GLTFLoader.js?v=1'
-import { clone as skClone } from '../vendor/jsm/utils/SkeletonUtils.js?v=1'
-const BASE = 'assets/chars/'
-const A = { ranger: null, clips: {}, tex: null }
-function recolor(img) {
-  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height
-  const x = c.getContext('2d'); x.drawImage(img, 0, 0)
-  const cw = img.width / 8, ch = img.height / 4
-  const grad = (col, row, top, bot, cols = 1) => { const g = x.createLinearGradient(0, row * ch, 0, (row + 1) * ch); g.addColorStop(0, top); g.addColorStop(1, bot); x.fillStyle = g; x.fillRect(col * cw, row * ch, cols * cw, ch) }
-  grad(5, 0, '#ffffff', '#d9dad6', 2); grad(2, 2, '#ffffff', '#d4d5d1')
-  grad(0, 1, '#f4f4ee', '#c8c9c4'); grad(1, 2, '#f4f4ee', '#c8c9c4')
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.flipY = false
-  return t
-}
-export function loadHero(manager) {
-  const L = new GLTFLoader()
-  const get = f => new Promise((ok, ng) => L.load(BASE + f, ok, undefined, ng))
-  return Promise.all([get('Ranger.glb'), get('Rig_Medium_General.glb'), get('Rig_Medium_MovementBasic.glb')]).then(([r, g1, g2]) => {
-    r.scene.traverse(o => {
-      if (o.isMesh) {
-        o.castShadow = true; o.frustumCulled = false
-        if (/Quiver|Cape|Bow|Arrow/i.test(o.name)) o.visible = false
-        if (o.material && o.material.map && !A.tex) A.tex = recolor(o.material.map.image)
-        if (o.material && A.tex) { o.material = o.material.clone(); o.material.map = A.tex; o.material.roughness = 0.8; o.material.metalness = 0 }
-      }
-    })
-    A.ranger = r.scene
-    for (const cl of [...g1.animations, ...g2.animations]) A.clips[cl.name] = cl
-  })
+import { HERO_ART as ART } from './heroart.js?v=2'
+const V = new URL(import.meta.url).search, H = 3.3, PS = ART.poses
+let tex = null
+export function loadHero() {
+  return new Promise((ok, ng) => new THREE.TextureLoader().load(`img/hero_atlas.webp${V}`, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; tex = t; ok() }, undefined, ng))
 }
 export class Hero {
   constructor(scene) {
     this.g = new THREE.Group(); scene.add(this.g)
-    const ch = this.char = skClone(A.ranger)
-    const box = new THREE.Box3().setFromObject(ch), h = box.max.y - box.min.y
-    this.k = 2.8 / h; ch.scale.setScalar(this.k); ch.position.y = -box.min.y * this.k
-    this.g.add(ch)
-    this.mixer = new THREE.AnimationMixer(ch); this.acts = {}
-    for (const n of ['Idle_A', 'Running_A', 'Jump_Idle', 'Jump_Land', 'Hit_A', 'Death_A', 'Throw']) {
-      if (!A.clips[n]) continue
-      const a = this.mixer.clipAction(A.clips[n]); this.acts[n] = a
-      if (/Death|Jump_Land|Throw|Hit/.test(n)) { a.setLoop(THREE.LoopOnce); a.clampWhenFinished = true }
-    }
-    this.cur = null; this.play('Idle_A'); this.yaw = Math.PI / 2; this.lastState = ''
-    // 手に持っている爪楊枝
-    this.mats = []; ch.traverse(o => { if (o.isMesh) this.mats.push(o.material) })
-    const pick = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.06, 1.6, 6), new THREE.MeshStandardMaterial({ color: 0xd9b57a, roughness: 0.8 }))
-    let hand = null; ch.traverse(o => { if (o.isBone && /hand.?r|handslot.?r|wrist.?r/i.test(o.name) && !hand) hand = o })
-    if (hand) { pick.scale.setScalar(1 / this.k); pick.position.set(0, 0, 0); hand.add(pick) } else { pick.position.set(0.5, 1.2, 0); this.g.add(pick) }
+    const geo = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0)
+    this.mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide, toneMapped: false, color: 0xfff6e8 })
+    this.paper = new THREE.Mesh(geo, this.mat); this.paper.castShadow = true; this.paper.frustumCulled = false; this.g.add(this.paper)
+    this.key = null; this.phase = 0; this.sx = 1; this.pop = 0; this.was = 'idle'; this.setPose('side_stand')
   }
-  play(n, fade = 0.12) {
-    const a = this.acts[n]; if (!a || this.cur === a) return
-    a.reset().setEffectiveWeight(1).fadeIn(fade).play(); if (this.cur) this.cur.fadeOut(fade); this.cur = a
+  setPose(k) {
+    if (k === this.key) return
+    this.key = k
+    const p = PS[k], uv = this.paper.geometry.attributes.uv, u0 = p.x / ART.W, u1 = (p.x + p.w) / ART.W, v1 = 1 - p.y / ART.H, v0 = 1 - (p.y + p.h) / ART.H
+    uv.setXY(0, u0, v1); uv.setXY(1, u1, v1); uv.setXY(2, u0, v0); uv.setXY(3, u1, v0); uv.needsUpdate = true
   }
   update(r, dt) {
     const m = r.me, g = this.g
     g.position.set(m.x, m.y, 0)
-    const want = (m.face > 0 ? 1 : -1) * (Math.PI / 2 - 0.34)
-    this.yaw += (want - this.yaw) * Math.min(1, dt * 16); g.rotation.y = this.yaw
-    g.rotation.z = m.dashT > 0 ? -m.dashDir * 0.42 : 0
-    const moving = Math.abs(m.vx) > 1
-    const st = r.over && !r.won ? 'dead' : !m.ground ? 'air' : moving ? 'run' : 'idle'
-    if (st !== this.lastState) {
-      if (st === 'dead') this.play('Death_A', 0.08)
-      else if (st === 'air') this.play('Jump_Idle', 0.08)
-      else if (st === 'run') this.play('Running_A', 0.1)
-      else this.play('Idle_A', 0.14)
-      this.lastState = st
-    }
-    if (st === 'run' && this.acts.Running_A) this.acts.Running_A.timeScale = 1.35
-    this.char.visible = !(m.iT > 0 && !r.over && Math.floor(r.t * 18) % 2 === 0)
-    this.mixer.update(dt)
+    const lost = r.over && !r.won, moving = Math.abs(m.vx) > 1
+    let key, bob = 0, rot = 0
+    if (lost) key = m.ground ? 'flat_down' : 'front_hit'
+    else if (m.knock > 0) key = 'front_hit'
+    else if (m.dashT > 0) key = 'side_dash'
+    else if (r.mode === 'win') { this.phase += dt * 7; key = 'side_jump'; bob = Math.abs(Math.sin(this.phase)) * 0.5 }
+    else if (!m.ground) key = 'side_jump'
+    else if (moving) { this.phase += dt * 15; key = Math.sin(this.phase) > 0 ? 'side_run_a' : 'side_run_b'; bob = Math.abs(Math.sin(this.phase)) * 0.12; rot = -m.face * 0.06 }
+    else if (r.mode === 'fight') key = Math.floor(r.t / 0.2) % 2 ? 'side_throw' : 'side_stand'   // 爪楊枝は自動で飛ぶ
+    else key = 'side_stand'
+    const st = !m.ground ? 'air' : 'floor'
+    if (this.was === 'air' && st === 'floor' && !lost) this.pop = 1
+    this.was = st; this.pop = Math.max(0, this.pop - dt * 6)
+    this.setPose(key)
+    const flip = key === 'front_hit' ? 1 : m.face > 0 ? 1 : -1
+    this.sx += (flip - this.sx) * Math.min(1, dt * 22)
+    const p = PS[key], sq = 1 - this.pop * 0.14, sx = Math.abs(this.sx) < 0.05 ? 0.05 * flip : this.sx, P = this.paper
+    P.scale.set(p.uw * H * sx * (2 - sq), p.uh * H * sq, 1); P.position.y = bob; P.rotation.z = rot
+    P.visible = !(m.iT > 0 && !r.over && Math.floor(r.t * 18) % 2 === 0)
   }
 }

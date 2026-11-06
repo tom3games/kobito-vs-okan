@@ -28,6 +28,15 @@ for (const [nm, bt, opt] of [['chromium', chromium, {}], ['webkit', webkit, {}]]
   await t(nm + ' 走り抜けると おかん戦へ', () => p.evaluate(() => { while (okan.run.mode === 'run' && okan.run.frame < 3000) okan.dbg.stepN(1); okan.dbg.auto(null); okan.dbg.pause(false); return okan.run.mode === 'intro' }))
   await p.waitForTimeout(250); await p.screenshot({ path: `shots/${nm}-intro.png` })
   await p.waitForFunction(() => okan.run.mode === 'fight', null, { timeout: 6000 })
+  await t(nm + ' 主人公は切り絵で、動きで絵が替わる', () => p.evaluate(() => {
+    okan.dbg.pause(true); const r = okan.run, m = r.me, H = okan.hero, s = { ...m }, keys = {}
+    const k = () => { okan.dbg.render(0.05); return H.key }
+    m.ground = true; m.vx = 0; m.dashT = 0; m.knock = 0; m.iT = 0; keys.stand = k()
+    m.vx = 6; keys.run = k(); m.vx = 0; m.ground = false; keys.air = k(); m.ground = true; m.dashT = 0.1; keys.dash = k(); m.dashT = 0; m.knock = 0.1; keys.hit = k(); m.knock = 0
+    m.face = -1; k(); for (let i = 0; i < 8; i++) okan.dbg.render(0.05); const left = H.paper.scale.x < 0; m.face = 1; for (let i = 0; i < 8; i++) okan.dbg.render(0.05); const right = H.paper.scale.x > 0
+    Object.assign(m, s); okan.dbg.pause(false)
+    return /side_(stand|throw)/.test(keys.stand) && /side_run/.test(keys.run) && keys.air === 'side_jump' && keys.dash === 'side_dash' && keys.hit === 'front_hit' && left && right && !!H.mat.map
+  }))
   await t(nm + ' 無音', () => p.evaluate(() => window.__muteOk()))
   await t(nm + ' 一画面', () => p.evaluate(() => document.documentElement.scrollHeight <= innerHeight && document.documentElement.scrollWidth <= innerWidth))
   await t(nm + ' ボタンが画面内で44px以上', () => p.evaluate(() => ['bL', 'bR', 'bJ', 'bD'].every(i => { const r = document.getElementById(i).getBoundingClientRect(); return r.width >= 44 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth })))
