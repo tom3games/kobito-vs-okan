@@ -53,13 +53,13 @@ function loadImg(n) { return new Promise(ok => { const i = new Image(); i.onload
 async function loadImagesLater() {
   loadFaces()
   // 先に使う順（投げる→歩く→…）。3本ずつ
-  const first = ['p_slipper', 'mom_throw', 'mom_normal', 'p_sandal', 'mom_hurt', 'mom_angry', 'mom_win', 'face_win']
+  const first = ['p_roomba', 'p_slipper', 'mom_throw', 'mom_normal', 'p_sandal', 'mom_hurt', 'mom_angry', 'mom_win', 'face_win']
   const list = [...new Set([...first.filter(n => imgQueue.includes(n)), ...imgQueue])].filter(n => !ready(texs[n]))
   for (let i = 0; i < list.length; i += 3) await Promise.all(list.slice(i, i + 3).map(loadImg))
   window.__imgAllDone = true
 }
 const MOM = ['normal', 'search', 'spot', 'angry', 'win', 'phone', 'throw', 'suck', 'hurt', 'rage', 'stomp', 'down']
-MOM.forEach(n => cutTex('mom_' + n)); ['cat_crouch', 'cat_leap', 'cat_swat', 'p_slipper', 'p_sandal', 'p_dust', 'p_nozzle', 'dad_walk'].forEach(cutTex)
+MOM.forEach(n => cutTex('mom_' + n)); ['cat_crouch', 'cat_leap', 'cat_swat', 'p_slipper', 'p_sandal', 'p_dust', 'p_nozzle', 'dad_walk', 'p_roomba'].forEach(cutTex)
 function cut(name, h, anchorY = 0) {
   const a = ASPECT[name].a, g = new THREE.PlaneGeometry(a * h, h); g.translate(0, h * (0.5 - anchorY), 0)
   const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: cutTex(name), transparent: true, alphaTest: 0.3, side: THREE.DoubleSide, fog: false })); m.visible = false; scene.add(m); cuts.push(m); return m
@@ -104,8 +104,9 @@ const hose = new THREE.Mesh(new THREE.BufferGeometry(), hoseMat); hose.visible =
 const streaks = Array.from({ length: 10 }, () => { const m = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.06), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, fog: false })); m.visible = false; scene.add(m); return { m, k: Math.random(), y: 0.4 + Math.random() * 5 } })
 // ルンバ（目玉シール）
 const roombaG = new THREE.Group(); scene.add(roombaG)
-{ const R = CFG.roomba.R, b = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.97, R, 1.1, 30), new THREE.MeshStandardMaterial({ color: 0x24262b, roughness: 0.3, metalness: 0.2 })); b.position.y = 0.65; b.castShadow = true; roombaG.add(b)
-  for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.SphereGeometry(0.45, 14, 10), new THREE.MeshStandardMaterial({ color: 0xf8f8f4, roughness: 0.2 })); w.position.set(s * 0.6, 0.9, R * 0.8); const pu = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), new THREE.MeshStandardMaterial({ color: 0x111111 })); pu.position.z = 0.34; w.add(pu); roombaG.add(w) } }
+// 目玉シールつきの切り絵（小人ゲームと同じ絵）。絵が届くまでは黒い円盤
+const roombaStub = new THREE.Mesh(new THREE.CylinderGeometry(CFG.roomba.R * 0.97, CFG.roomba.R, 1.1, 24), new THREE.MeshStandardMaterial({ color: 0x24262b })); roombaStub.position.y = 0.65; roombaG.add(roombaStub)
+const roombaM = cut('p_roomba', CFG.roomba.R * 2.3 / ASPECT.p_roomba.a); roombaG.add(roombaM)
 const dadM = cut('dad_walk', 21)
 let dadT = -1
 const catM = { crouch: cut('cat_crouch', 4.8), leap: cut('cat_leap', 3.7), swat: cut('cat_swat', 5.4) }
@@ -308,7 +309,8 @@ function drawWorld(dt) {
   // ルンバとおとん
   const rb = r.roomba, inRun = r.mode === 'run'
   roombaG.visible = (inRun && rb.alive) || !!(c && c.roomba)
-  if (c && c.roomba) { roombaG.position.set(c.x, c.y, 0.2); roombaG.rotation.set(0, 0, 0) } else { roombaG.position.set(rb.x, 0, 0); roombaG.rotation.y = rb.dir > 0 ? 0.7 : -0.7; roombaG.scale.setScalar(rb.hitT > 0 ? 1.08 : 1) }
+  if (c && c.roomba) { roombaG.position.set(c.x, c.y, 0.2); roombaG.scale.set(c.dir > 0 ? 1 : -1, 1, 1) } else { const k = rb.hitT > 0 ? 1.08 : 1; roombaG.position.set(rb.x, Math.abs(Math.sin(r.t * 30)) * 0.04, 0); roombaG.scale.set((rb.dir > 0 ? 1 : -1) * k, k, k) }
+  { const t = ready(texs.p_roomba); roombaM.visible = t; roombaStub.visible = !t }
   if (dadT >= 0) { dadT += dt; const k = dadT / 7; dadM.visible = k < 1; dadM.position.set(view.x + 16 - k * 32, 0, -22); dadM.position.y = Math.abs(Math.sin(dadT * 5)) * 0.3; if (k >= 1) dadT = -1 } else dadM.visible = false
   // カメラ
   const half = view.w / 2, tgt = inRun ? Math.max(half, m.x + 3) : r === idleRun ? 60 : Math.max(CFG.arenaL + half, Math.min(CFG.arenaR - half, m.x * 0.55 + b.x * 0.45))
