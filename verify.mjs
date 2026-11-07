@@ -1,4 +1,5 @@
 // 初版の確認（スマホ縦 390x844、Chromium と WebKit）。node verify.mjs
+import './mute-auto.mjs'  // テスト中は絶対に音を出さない（playwright を無音に差し替え）
 import { chromium, webkit } from 'playwright'
 import { spawn } from 'node:child_process'
 import { MUTE_LAUNCH, muteContext } from './mute.mjs'
