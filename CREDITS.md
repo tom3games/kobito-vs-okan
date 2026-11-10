@@ -16,7 +16,7 @@
 - snd/fridge_loop.wav: 100 CC0 SFX #2 の loop_machine / rubberduck / CC0
 
 ## 人物と絵
-- img/p_roomba.webp: ルンバの切り絵。小人シリーズのために画像生成で作成
-- img/hero_atlas.webp: 主人公の切り絵。小人シリーズのために画像生成で作成
-- img/*.webp: 画像生成で作った架空の人物と小道具（art/prompts がプロンプト、art/key.py が切り抜き）
+- img/p_roomba.webp: ルンバの切り絵。小人シリーズのために作成
+- img/hero_atlas.webp: 主人公の切り絵。小人シリーズのために作成
+- img/*.webp: このゲームのために作った架空の人物と小道具（art/key.py が切り抜き）
 - 舞台（畳・ふすま・たんす・マッチ箱など）はコードで作った形とテクスチャ

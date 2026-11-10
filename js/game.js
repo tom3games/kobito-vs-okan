@@ -371,7 +371,7 @@ loadImg('mom_search').then(async () => {
   window.__bootDone = true; window.__bootStep && window.__bootStep(); $('boot').classList.add('gone'); $('title').classList.remove('hidden'); mode = 'title'; last = performance.now()
   window.__okanReady = true
   // ここから裏で順に: 主人公 → 画像
-  import('./hero.js?v=2').then(async H => { await H.loadHero(); hero = new H.Hero(scene); window.__heroDone = true; await loadImagesLater() }).catch(e => { console.error(e); loadImagesLater() })
+  import('./hero.js?v=3').then(async H => { await H.loadHero(); hero = new H.Hero(scene); window.__heroDone = true; await loadImagesLater() }).catch(e => { console.error(e); loadImagesLater() })
 }).catch(e => { console.error(e); throw e })
 requestAnimationFrame(frame)
 

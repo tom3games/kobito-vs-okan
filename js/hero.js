@@ -1,4 +1,4 @@
-// 主人公: 画像生成の切り絵（img/hero_atlas.webp）。横向きの紙で、動きで絵を替える。紙は判定より少し大きく 3.3（小さいと顔が読めない）。当たり判定は shared/sim.js のまま
+// 主人公: 切り絵（img/hero_atlas.webp）。横向きの紙で、動きで絵を替える。紙は判定より少し大きく 3.3（小さいと顔が読めない）。当たり判定は shared/sim.js のまま
 import * as THREE from 'three'
 import { HERO_ART as ART } from './heroart.js?v=2'
 const V = new URL(import.meta.url).search, H = 3.3, PS = ART.poses
