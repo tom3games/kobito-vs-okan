@@ -81,7 +81,7 @@ var errs=[];window.addEventListener('error',function(e){errs.push(e.message||(e.
 window.addEventListener('unhandledrejection',function(e){errs.push(String(e.reason&&e.reason.message||e.reason))});
 setTimeout(function(){if(window.__okanReady)return;var d=document.createElement('div');d.id='bootErr';d.textContent='起動できませんでした\n'+errs.join('\n')+'\n'+navigator.userAgent;document.body.appendChild(d)},20000)})();
 </script>
-<script src="sfx.js?v=1"></script>
+<script src="sfx.js?v=2"></script>
 <script type="module" src="js/game.js?v=4"></script>
 <script src="support.js?v=4" data-ja="お菓子" data-en="a snack"></script>
 </body>
