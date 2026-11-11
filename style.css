@@ -6,7 +6,7 @@ button,a{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:po
 #view,#flash{position:fixed;inset:0}#view canvas{display:block;width:100%;height:100%;touch-action:none}
 #flash{pointer-events:none;opacity:0;background:#fff;z-index:3}
 section{position:fixed;inset:0;z-index:5}
-#title{display:flex;flex-direction:column;align-items:flex-start;padding:max(38px,env(safe-area-inset-top)) 18px calc(30px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(30,22,10,0) 55%,rgba(30,22,10,.62))}
+#title{display:flex;flex-direction:column;align-items:flex-start;padding:max(38px,env(safe-area-inset-top)) 18px calc(30px + calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px)));background:linear-gradient(180deg,rgba(30,22,10,0) 55%,rgba(30,22,10,.62))}
 .sign{position:relative;background:#274a7c;color:#fbf6e6;padding:18px 26px 20px;border:4px solid #fbf6e6;outline:3px solid #274a7c;transform:rotate(-2.4deg);box-shadow:3px 6px 0 rgba(30,20,0,.35)}
 .sign h1{margin:0;font:400 clamp(30px,9.2vw,42px)/1.2 "RocknRoll One",sans-serif}
 .sign i{position:absolute;width:8px;height:8px;border-radius:50%;background:#c9cfd6;box-shadow:inset -1px -1px 1px #66707a}
@@ -26,8 +26,8 @@ section{position:fixed;inset:0;z-index:5}
 #cut{position:absolute;right:10px;top:13%;width:44%;aspect-ratio:1;background:#fff;border:6px solid #1a1410;outline:4px solid #fff;transform:rotate(4deg);overflow:hidden}#cut img{width:100%;height:100%;display:block}
 .edge{position:absolute;top:44%;width:0;height:0;border-top:20px solid transparent;border-bottom:20px solid transparent;filter:drop-shadow(0 0 3px #fff)}
 #edgeL{left:6px;border-right:26px solid #d62b1f}#edgeR{right:6px;border-left:26px solid #d62b1f}
-#guide{position:absolute;left:0;right:0;bottom:calc(150px + env(safe-area-inset-bottom));text-align:center;color:#fff;font:600 19px/1.5 "Klee One",serif;text-shadow:0 1px 3px #000,0 0 8px #000}
-#pad{position:absolute;left:8px;right:8px;bottom:calc(16px + env(safe-area-inset-bottom));display:flex;align-items:flex-end;gap:6px}
+#guide{position:absolute;left:0;right:0;bottom:calc(150px + calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px)));text-align:center;color:#fff;font:600 19px/1.5 "Klee One",serif;text-shadow:0 1px 3px #000,0 0 8px #000}
+#pad{position:absolute;left:8px;right:8px;bottom:calc(16px + calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px)));display:flex;align-items:flex-end;gap:6px}
 #pad .gap{flex:1}
 .sew{width:min(84px,20.5vw);height:min(84px,20.5vw);touch-action:none;flex:none}.sew svg{width:100%;height:100%;display:block;pointer-events:none}
 .sew.big{width:min(112px,27vw);height:min(112px,27vw)}.sew.small{width:min(72px,17.5vw);height:min(72px,17.5vw);margin-bottom:26px}
@@ -35,7 +35,7 @@ section{position:fixed;inset:0;z-index:5}
 .st{fill:none;stroke:#b5473f;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:9 5}
 #bJ .st{stroke:#d64f80}#bD .st{stroke:#3f6ea5}
 #bJ.glow svg{filter:drop-shadow(0 0 10px #ff6fa5)}.glow svg{filter:drop-shadow(0 0 9px #fff4b0)}
-#result{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px 12px calc(14px + env(safe-area-inset-bottom));background:rgba(25,18,8,.55)}
+#result{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px 12px calc(14px + calc(env(safe-area-inset-bottom) + var(--inapp-bot,0px)));background:rgba(25,18,8,.55)}
 #paper{flex:1;min-height:0;max-width:100%;object-fit:contain;display:block;width:100%}
 .res{display:flex;gap:10px;align-self:stretch}
 #btnAgain{flex:1;min-height:66px;background:#e8739a;color:#2a1018;font:400 26px "RocknRoll One",sans-serif;border:3px solid #2a1018;border-radius:6px 20px 8px 16px;box-shadow:0 6px 0 #8d3253}
