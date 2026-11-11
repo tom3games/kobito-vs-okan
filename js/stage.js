@@ -1,6 +1,6 @@
 // 舞台: 昭和の居間を横から見る。全部コードで作る（畳・ふすま・茶だんす・テレビ・ちゃぶ台・マッチ箱）
 import * as THREE from 'three'
-import { CFG } from '../shared/sim.js?v=1'
+import { CFG } from '../shared/sim.js?v=2'
 export function tex(w, h, draw, repeat) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h)
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4
@@ -11,7 +11,8 @@ const std = (o) => new THREE.MeshStandardMaterial({ roughness: 0.85, ...o })
 function box(scene, w, h, d, x, y, z, mat, shadow = true) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y + h / 2, z); m.castShadow = shadow; m.receiveShadow = true; scene.add(m); return m
 }
-export function buildStage(scene) {
+export function buildStage(scene0) {
+  const scene = new THREE.Group(); scene0.add(scene)   // 1面の物は全部この中（2面では隠す）。光と霧は全体に
   const L = -40, R = CFG.arenaR + 40, cx = (L + R) / 2, W = R - L
   // 畳
   const tatami = tex(1024, 1024, (x, w, h) => {
@@ -74,9 +75,9 @@ export function buildStage(scene) {
   const ora = new THREE.Mesh(new THREE.SphereGeometry(3.2, 22, 16), std({ color: 0xe88a1d, roughness: 0.5 })); ora.position.set(47, 2.8, -7); ora.scale.y = 0.88; ora.castShadow = true; scene.add(ora)
   const ora2 = ora.clone(); ora2.position.set(75, 2.8, -9); scene.add(ora2)
   // 光
-  scene.background = new THREE.Color(0x2a2118); scene.fog = new THREE.Fog(0x3a2c18, 40, 110)
-  scene.add(new THREE.HemisphereLight(0xfff0d6, 0x6e5a32, 1.5))
+  scene0.background = new THREE.Color(0x2a2118); scene0.fog = new THREE.Fog(0x3a2c18, 40, 110)
+  scene0.add(new THREE.HemisphereLight(0xfff0d6, 0x6e5a32, 1.5))
   const sun = new THREE.DirectionalLight(0xffe2b0, 2.1); sun.position.set(60, 40, 26); sun.castShadow = true
   sun.shadow.mapSize.set(1024, 1024); const c = sun.shadow.camera; c.left = -24; c.right = 24; c.top = 24; c.bottom = -24; c.far = 110; sun.shadow.bias = -0.0006
-  scene.add(sun, sun.target); return { sun }
+  scene0.add(sun, sun.target); return { sun, g: scene }
 }

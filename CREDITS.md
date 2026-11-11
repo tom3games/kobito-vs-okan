@@ -20,3 +20,17 @@
 - img/hero_atlas.webp: 主人公の切り絵。小人シリーズのために作成
 - img/*.webp: このゲームのために作った架空の人物と小道具（art/key.py が切り抜き）
 - 舞台（畳・ふすま・たんす・マッチ箱など）はコードで作った形とテクスチャ
+- snd/clang1.mp3: 100 CC0 SFX / rubberduck / CC0
+- snd/clang2.mp3: 100 CC0 SFX / rubberduck / CC0
+- snd/pot1.mp3: 100 CC0 SFX / rubberduck / CC0
+- snd/pot2.mp3: 100 CC0 SFX / rubberduck / CC0
+- snd/splash1.mp3: 100 CC0 SFX / rubberduck / CC0
+- snd/splash2.mp3: 100 CC0 SFX / rubberduck / CC0
+- snd/plop1.mp3: 100 CC0 SFX / rubberduck / CC0
+- snd/plop2.mp3: 100 CC0 SFX / rubberduck / CC0
+- snd/dishes.mp3: 100 CC0 SFX / rubberduck / CC0
+- snd/water_loop.wav: 100 CC0 SFX #2 の loop_water_01 / rubberduck / CC0
+- snd/ring.mp3: File:JA_Ringback_tone_by_au.ogg (先頭2.3秒) / KDDI Corporation / Public domain
+- snd/sneeze.mp3: File:Sneeze Niesen Frau 2017 PD.ogg（0.95〜2.5秒を切り出し）/ Thirunavukkarasye-Raveendran / CC BY 4.0（Wikimedia Commons）
+- img の台所の小道具とおかんの台所のポーズ（2面）: このゲームのために作成（art/key.py が切り抜き）
+- 台所の舞台（タイル・流し・コンロ・瓶）はコードで作った形とテクスチャ

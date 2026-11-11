@@ -26,7 +26,7 @@ export class Hero {
     const lost = r.over && !r.won, moving = Math.abs(m.vx) > 1
     let key, bob = 0, rot = 0
     if (lost) key = m.ground ? 'flat_down' : 'front_hit'
-    else if (m.knock > 0) key = 'front_hit'
+    else if (m.knock > 0 || m.sneezeT > 0) key = 'front_hit'
     else if (m.dashT > 0) key = 'side_dash'
     else if (r.mode === 'win') { this.phase += dt * 7; key = 'side_jump'; bob = Math.abs(Math.sin(this.phase)) * 0.5 }
     else if (!m.ground) key = 'side_jump'

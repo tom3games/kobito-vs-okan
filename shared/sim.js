@@ -12,7 +12,17 @@ export const CFG = {
   shotEvery: 0.2, shotT: 0.3,
   bossHP: 560, phase2: 0.66, phase3: 0.33, parryDmg: 16, toeK: 1.5, faceK: 2,
   toeNear: 6, faceY: 6.3, bossWalk: 2.2, bossL: 54, bossR: 68,
-  suckF: 6.4
+  suckF: 6.4,
+  stage: 1, pits: [], toeLy: 0.7, faceLy0: 11.4, bodyLy0: 3.6, bodyLyR: 6.4
+}
+// 2面 台所。走る区間は流しの穴（落ちたら絆創膏1枚・手前からやり直し）と転がるミニトマト。部屋はコショウの瓶と調味料の足場
+export const CFG2 = {
+  ...CFG, stage: 2,
+  plats: [{ x0: 47.5, x1: 51, y: 4.2 }, { x0: 71, x1: 74.5, y: 4.2 }, { x0: 9, x1: 11.6, y: 3 }, { x0: 25.5, x1: 28.2, y: 3.6 }],
+  tacks: [], pits: [[14.5, 19.5], [33, 37]],
+  roomba: { x0: 20.5, x1: 31, R: 1.25, hp: 6, v: 4.2 },
+  bossHP: 680, toeLy: 8.4, bodyLy0: 6, bodyLyR: 4.6,
+  pepperX: [57, 66, 50.5, 71], pepperBack: 11, sneezeT: 2.3, dinnerT: 4.2
 }
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v
 const lerp = (a, b, k) => a + (b - a) * k
@@ -20,13 +30,14 @@ const lerp = (a, b, k) => a + (b - a) * k
 function rng(seed) { let s = (seed >>> 0) || 1; return () => (s = (s * 16807) % 2147483647) / 2147483647 }
 
 export function newRun(seed, opt = {}) {
-  const retry = !!opt.retry
+  const retry = !!opt.retry, C = opt.stage === 2 ? CFG2 : CFG
   const r = {
+    C, stage: C.stage,
     seed, rnd: rng(seed), frame: 0, t: 0, fightT: 0, mode: retry ? 'intro' : 'run', modeT: 0, retry, over: false, won: false,
-    hp: CFG.maxHP, ev: [], objs: [], shots: [], id: 1, hitstop: 0,
+    hp: C.maxHP, ev: [], objs: [], shots: [], id: 1, hitstop: 0,
     me: { x: retry ? CFG.retryX : 2, y: 0, vx: 0, vy: 0, ground: true, face: 1, dashT: 0, dashCd: 0, dashDir: 1, airDash: true, iT: 0, parryT: 0, parryUsed: false, coy: 0, buf: 0, knock: 0, jumping: false, onPlat: null },
-    boss: { hp: CFG.bossHP, x: 62, phase: 1, pose: 'normal', act: null, cool: 1.1, last: null, walkPhase: 0, inv: 0, hurtT: 0, say: null, stuck: [], stepT: 0, n: 0, scale: 1 },
-    roomba: { x: CFG.roomba.x1, dir: -1, hp: CFG.roomba.hp, alive: true, hitT: 0 },
+    boss: { hp: C.bossHP, x: 62, phase: 1, pose: 'normal', act: null, cool: 1.1, last: null, walkPhase: 0, inv: 0, hurtT: 0, say: null, stuck: [], stepT: 0, n: 0, scale: 1 },
+    roomba: { x: C.roomba.x1, dir: -1, hp: C.roomba.hp, alive: true, hitT: 0 },
     cat: null, nozzle: null,
     rare: { dad: 0, roombaCat: false, longCall: false },
     stats: { shots: 0, toe: 0, face: 0, parries: 0, hits: 0, dashes: 0, jumps: 0 },
@@ -36,13 +47,18 @@ export function newRun(seed, opt = {}) {
   r.rare.dad = R() < 0.2 ? 20 + R() * 40 : 0     // おとんが奥を横切る（助けない）
   r.rare.roombaCat = R() < 0.14                  // 猫がルンバに乗って来る
   r.rare.longCall = R() < 0.18                   // 電話が長引いて止まる
+  if (C.stage === 2) {
+    r.rare.dinnerDad = R() < 0.3                  // ご飯の間におとんが通る
+    r.pepper = { x: C.pepperX[0], st: 'stand', t: 0, i: 0 }; r.rice = null
+    r.stats.sneezes = 0; r.stats.knocks = 0
+  }
   if (opt.rare) Object.assign(r.rare, opt.rare)
   if (retry) r.me.x = CFG.retryX
   return r
 }
 
 const emit = (r, k, o) => r.ev.push({ k, ...o })
-export const fraction = r => Math.max(0, r.boss.hp) / CFG.bossHP
+export const fraction = r => Math.max(0, r.boss.hp) / r.C.bossHP
 export const leftPct = r => Math.max(1, Math.ceil(fraction(r) * 100))
 
 function setMode(r, m) { r.mode = m; r.modeT = 0; emit(r, 'mode', { m }) }
@@ -61,10 +77,11 @@ function hurtMe(r, by) {
 
 // ------------------------------------------------------------ 自分
 function moveMe(r, inp, dt) {
-  const m = r.me, C = CFG
+  const m = r.me, C = r.C
   const L = r.mode === 'run' ? 0.4 : (r.mode === 'intro' || r.mode === 'fight' ? C.arenaL + 0.6 : 0)
   const Rr = r.mode === 'run' ? 200 : C.arenaR - 0.6
-  const canCtl = !r.over && (r.mode === 'run' || r.mode === 'fight')
+  if (m.sneezeT > 0) m.sneezeT -= dt
+  const canCtl = !r.over && (r.mode === 'run' || r.mode === 'fight') && !(m.sneezeT > 0)
   m.iT = Math.max(0, m.iT - dt); m.dashCd = Math.max(0, m.dashCd - dt); m.parryT = Math.max(0, m.parryT - dt); m.knock = Math.max(0, m.knock - dt)
   m.buf = Math.max(0, m.buf - dt); m.coy = m.ground ? C.coyote : Math.max(0, m.coy - dt)
   const dir = canCtl && m.knock <= 0 ? (inp.right ? 1 : 0) - (inp.left ? 1 : 0) : 0
@@ -97,22 +114,33 @@ function moveMe(r, inp, dt) {
   if (m.jumping && !inp.jumpHeld && m.vy > 4) { m.vy *= C.jumpCut; m.jumping = false }
   if (m.vy <= 0) m.jumping = false
   m.x = clamp(m.x + m.vx * dt, L, Rr)
+  if (m.y < -0.05) { const q = pitAt(C, m.x) || m.pit; if (q) { m.pit = q; m.x = clamp(m.x, q[0] + 0.35, q[1] - 0.35) } }
+  const pit = C.pits.length ? pitAt(C, m.x) : null
   if (m.dashT <= 0) m.vy -= C.grav * dt
   const py = m.y; m.y += m.vy * dt
   let landed = null
   if (m.vy <= 0) {
-    if (m.y <= 0) landed = 0
+    if (m.y <= 0 && !pit) landed = 0
     for (const p of C.plats) if (m.x >= p.x0 - 0.3 && m.x <= p.x1 + 0.3 && py >= p.y - 0.02 && m.y <= p.y) landed = p.y
   }
   if (landed != null) {
     if (!m.ground && m.vy < -6) emit(r, 'land', {})
-    m.y = landed; m.vy = 0; m.ground = true; m.airDash = true; m.parryUsed = false; m.parryT = 0
+    m.y = landed; m.vy = 0; m.ground = true; m.airDash = true; m.parryUsed = false; m.parryT = 0; m.pit = null
   } else m.ground = false
+  if (m.y < -4.5) fell(r)
+}
+function pitAt(C, x, pad = 0) { for (const q of C.pits) if (x > q[0] + pad && x < q[1] - pad) return q; return null }
+// 流しに落ちた: 絆創膏1枚（走る区間では最後の1枚は残る）、穴の手前から
+function fell(r) {
+  const m = r.me, q = m.pit || r.C.pits[0]
+  m.iT = 0; hurtMe(r, 'drain'); emit(r, 'fell', {})
+  m.x = q[0] - 2.4; m.y = 0; m.vy = 0; m.vx = 0; m.ground = true; m.knock = 0; m.pit = null; m.dashT = 0
 }
 
 // ------------------------------------------------------------ 爪楊枝（自動）
 function fire(r, dt) {
   if (r.over) return
+  if (r.me.sneezeT > 0) return
   if (!(r.mode === 'run' || r.mode === 'fight')) return
   r.fireT -= dt
   if (r.fireT > 0) return
@@ -124,7 +152,7 @@ function fire(r, dt) {
     if (m.y >= CFG.faceY) { zone = 'face'; k = CFG.faceK }
     else if (m.y < 1 && Math.abs(m.x - b.x) <= CFG.toeNear) { zone = 'toe'; k = CFG.toeK }
     const lx = zone === 'toe' ? (side > 0 ? -1 : 1) * (2.2 + r.rnd() * 1.6) : zone === 'face' ? (r.rnd() - 0.5) * 4 : (r.rnd() - 0.5) * 6.4
-    const ly = zone === 'toe' ? 0.7 : zone === 'face' ? 11.4 + r.rnd() * 3.5 : 3.6 + r.rnd() * 6.4
+    const C = r.C, ly = zone === 'toe' ? C.toeLy : zone === 'face' ? C.faceLy0 + r.rnd() * 3.5 : C.bodyLy0 + r.rnd() * C.bodyLyR
     r.shots.push({ id: r.id++, k: 'in', t: 0, T: CFG.shotT, x0: m.x + m.face * 0.4, y0: y, lx, ly, zone, dmg: k, side })
     m.face = side
   } else {
@@ -141,7 +169,7 @@ function stepShots(r, dt) {
     if (s.k === 'flat') {
       s.x += s.dir * 28 * dt
       const R = r.roomba
-      if (R.alive && Math.abs(s.x - R.x) < CFG.roomba.R && s.y0 < 3.2) {
+      if (R.alive && Math.abs(s.x - R.x) < r.C.roomba.R && s.y0 < 3.2) {
         s.dead = true; R.hp--; R.hitT = 0.1; emit(r, 'roombaHit', {})
         if (R.hp <= 0) { R.alive = false; emit(r, 'roombaDown', {}) }
       }
@@ -157,6 +185,7 @@ function stepShots(r, dt) {
 function hitBoss(r, dmg, zone, lx, ly) {
   const b = r.boss
   if (r.over) return
+  if (b.sneeze > 0) dmg *= 3   // くしゃみ中は3倍
   b.hp -= dmg
   if (zone === 'toe') { r.stats.toe++; if (r.stats.toe % 12 === 1) { b.hurtT = Math.max(b.hurtT, 0.5); emit(r, 'toe', {}) } }
   if (zone === 'face') r.stats.face++
@@ -172,6 +201,7 @@ function hitBoss(r, dmg, zone, lx, ly) {
     b.phase = ph; b.act = null; b.inv = 1.7; b.cool = 1.8; r.objs = r.objs.filter(o => o.k === 'back'); r.nozzle = null; r.cat = null
     b.pose = ph === 3 ? 'rage' : 'angry'; b.poseT = 1.7
     if (ph === 3) b.scale = 1.32
+    if (r.stage === 2) { b.sneeze = 0; if (ph === 3) startDinner(r) }
     emit(r, 'phase', { ph })
   }
 }
@@ -200,7 +230,7 @@ function stepObjs(r, dt) {
         if (o.t > 0.62) o.dead = true
       }
       if (o.live && o.pink && m.parryT > 0 && dist(m.x, m.y + CFG.meH, o.x, o.y) < CFG.parryR) { parried(r, o); continue }
-      if (o.live && o.st === 'fly' && dist(m.x, m.y + CFG.meH, o.x, o.y) < CFG.meR + 0.85) hurtMe(r, 'slip')
+      if (o.live && o.st === 'fly' && dist(m.x, m.y + CFG.meH, o.x, o.y) < CFG.meR + 0.85) hurtMe(r, o.skin || 'slip')
     } else if (o.k === 'back') {
       const p = Math.min(1, o.t / o.T)
       o.x = lerp(o.x0, r.boss.x + (o.lx || 0), p); o.y = lerp(o.y0, 9, p) + 2 * 4 * p * (1 - p); o.z = lerp(0, -13.4, p); o.rot -= dt * 18
@@ -220,6 +250,25 @@ function stepObjs(r, dt) {
       o.x += o.v * dt; o.h = 1.7
       if (o.t > 2.8 || o.x < CFG.arenaL - 2 || o.x > CFG.arenaR + 2) o.dead = true
       if (Math.abs(m.x - o.x) < 1.0 && m.y < o.h - 0.25) hurtMe(r, 'stomp')
+    } else if (o.k === 'oil') {
+      const p = Math.min(1, o.t / o.T)
+      o.x = lerp(o.x0, o.tx, p); o.y = lerp(o.y0, 0, p) + 6 * 4 * p * (1 - p) * (1 - p * 0.25); o.z = lerp(-12, 0, p); o.rot = (o.rot || 0) + dt * 5
+      o.live = p > 0.6
+      if (o.live && dist(m.x, m.y + CFG.meH, o.x, o.y) < CFG.meR + 0.55) hurtMe(r, 'oil')
+      if (p >= 1) { o.dead = true; emit(r, 'splat', { x: o.x }) }
+    } else if (o.k === 'spat') {
+      if (o.t < 0.14 && Math.abs(m.x - o.x) < 1.9 && m.y < 3.4) hurtMe(r, 'spat')
+      if (o.t > o.T) o.dead = true
+    } else if (o.k === 'water') {
+      o.x += o.v * dt
+      if (Math.abs(m.x - o.x) < 1.5 && m.y < o.h - 0.25) hurtMe(r, 'water')
+      if (o.x < r.C.arenaL - 3 || o.x > r.C.arenaR + 3) o.dead = true
+    } else if (o.k === 'ladle') {
+      if (o.t >= o.warn) {
+        o.go = true; o.x += o.v * dt
+        if (Math.abs(m.x - o.x) < 2.4 && m.y > 0.9 && m.y < 6.8) hurtMe(r, 'ladle')
+        if (o.x < r.C.arenaL - 4 || o.x > r.C.arenaR + 4) o.dead = true
+      }
     }
   }
   r.objs = r.objs.filter(o => !o.dead)
@@ -291,6 +340,7 @@ function stepBoss(r, dt) {
   const b = r.boss, m = r.me
   b.inv = Math.max(0, b.inv - dt); b.hurtT = Math.max(0, b.hurtT - dt)
   if (r.mode !== 'fight') return
+  if (r.stage === 2) return stepBoss2(r, dt)
   r.fightT += dt
   if (r.rare.dad && r.fightT > r.rare.dad && !r.rare.dadDone) { r.rare.dadDone = true; emit(r, 'dad', {}) }
   if (!b.act) {
@@ -383,9 +433,126 @@ function stepCat(r, dt) {
   }
 }
 
+// ------------------------------------------------------------ 2面 台所のおかん
+// 1段階 料理（フライ返し・油はね）／2段階 電話しながら片手（蛇口の水・おたま）／3段階の前に「ご飯できたで」で休戦
+// コショウの瓶にダッシュで体当たりすると倒れて、おかんがくしゃみで止まる（その間は爪楊枝3倍）
+const ACT2 = { flip: { P: 'flip', warn: 0.85 }, oil: { P: 'pan', warn: 0.8 }, water: { P: 'spray', warn: 1.0 }, ladle: { P: 'phoneladle', warn: 0.95 } }
+const CYCLE2 = {
+  1: ['flip', 'oil', 'flip', 'oil', 'oil'],
+  2: ['water', 'ladle', 'oil', 'water', 'ladle', 'flip'],
+  3: ['flip', 'water', 'oil', 'ladle', 'flip', 'oil', 'water', 'ladle']
+}
+const idlePose2 = b => b.phase === 3 ? 'angry' : b.phase === 2 ? 'phone' : 'normal'
+function startAct2(r, k) {
+  const b = r.boss, m = r.me, C = r.C
+  const a = { k, t: 0, warn: ACT2[k].warn * (b.phase === 3 ? 0.88 : 1), n: 0 }
+  b.act = a; b.pose = ACT2[k].P; b.poseT = 0
+  if (k === 'flip') { a.count = b.phase === 3 ? 2 : 1; a.tx = aimX(r); emit(r, 'windup', {}) }
+  else if (k === 'oil') { emit(r, 'windup', {}) }
+  else if (k === 'water') { a.count = b.phase === 3 ? 2 : 1; emit(r, 'faucet', {}) }
+  else if (k === 'ladle') {
+    const fromL = m.x > (C.arenaL + C.arenaR) / 2
+    r.objs.push({ id: r.id++, k: 'ladle', t: 0, warn: a.warn, x: fromL ? C.arenaL - 2.5 : C.arenaR + 2.5, y: 4.8, v: (fromL ? 1 : -1) * (b.phase === 3 ? 24 : 21), go: false })
+    emit(r, 'windup', {})
+  }
+}
+function endAct2(r) {
+  const b = r.boss
+  b.act = null; b.pose = idlePose2(b)
+  b.cool = b.phase === 3 ? 0.65 : b.phase === 2 ? 0.95 : 1.2
+}
+function spawnOil(r) {
+  const b = r.boss, C = r.C, aim = aimX(r), side = b.x < aim ? 1 : -1
+  const offs = b.phase === 3 ? [-6.2, -3.6, -1.45, 1.45, 3.6, 6.2] : [-4.6, -1.5, 1.5, 4.6]
+  for (const d of offs) {
+    const tx = clamp(aim + d + (r.rnd() - 0.5) * 0.5, C.arenaL + 0.4, C.arenaR - 0.4)
+    r.objs.push({ id: r.id++, k: 'oil', t: 0, T: 0.95 + r.rnd() * 0.15, x0: b.x + side * 2.6, y0: 13, x: b.x, y: 13, z: -12, tx, rot: 0 })
+  }
+  addSlip(r, aim, 1.05, true); r.objs[r.objs.length - 1].skin = 'wiener'
+  emit(r, 'oil', {})
+}
+function startDinner(r) {
+  const b = r.boss, m = r.me, C = r.C
+  b.act = { k: 'dinner', t: 0, warn: 0 }; b.pose = 'dinner'; b.poseT = 0; b.inv = C.dinnerT + 0.2; b.sneeze = 0
+  r.objs = r.objs.filter(o => o.k === 'back')
+  r.rice = { x: clamp(m.x < (C.arenaL + C.arenaR) / 2 ? m.x + 9 : m.x - 9, C.arenaL + 2, C.arenaR - 2), t: 0 }
+  emit(r, 'dinner', {})
+}
+function stepPepper(r, dt) {
+  const p = r.pepper, m = r.me, b = r.boss, C = r.C
+  p.t += dt
+  const busy = r.over || (b.act && b.act.k === 'dinner')
+  if (p.st === 'stand') {
+    if (!busy && m.dashT > 0 && Math.abs(m.x - p.x) < 1.4 && m.y < 3 && !(b.sneeze > 0)) { p.st = 'fall'; p.t = 0; p.dir = m.dashDir; r.stats.knocks++; emit(r, 'pepperKnock', { x: p.x }) }
+  } else if (p.st === 'fall') {
+    if (p.t >= 0.32 && !p.cloud) {
+      p.cloud = true; emit(r, 'pepperCloud', { x: p.x })
+      if (Math.abs(m.x - p.x) < 1.7 && m.y < 4.5 && m.dashT <= 0 && !r.over) { m.sneezeT = 0.85; emit(r, 'meSneeze', {}) }
+    }
+    if (p.t >= 0.75) {
+      p.st = 'gone'; p.t = 0; p.cloud = false
+      if (!busy) { b.sneeze = C.sneezeT; b.act = null; b.pose = 'sneeze'; b.hurtT = 0; r.objs = r.objs.filter(o => o.k === 'back'); r.stats.sneezes++; emit(r, 'sneeze', {}) }
+    }
+  } else if (p.st === 'gone' && p.t >= C.pepperBack && !r.over) {
+    p.i++; p.x = C.pepperX[p.i % C.pepperX.length]; p.st = 'stand'; p.t = 0; emit(r, 'pepperBack', {})
+  }
+}
+function stepBoss2(r, dt) {
+  const b = r.boss, m = r.me, C = r.C
+  r.fightT += dt
+  stepPepper(r, dt)
+  if (b.sneeze > 0) {
+    b.sneeze -= dt; b.pose = 'sneeze'
+    if (b.sneeze <= 0) { b.sneeze = 0; b.pose = idlePose2(b); b.cool = 0.7; emit(r, 'sneezeEnd', {}) }
+    return
+  }
+  const a = b.act
+  if (a && a.k === 'dinner') {
+    a.t += dt; b.pose = 'dinner'
+    const rc = r.rice
+    if (rc) { rc.t += dt; if (Math.abs(m.x - rc.x) < 1.3 && m.y < 2.2) { r.hp = Math.min(C.maxHP, r.hp + 1); r.rice = null; r.stats.rice = 1; emit(r, 'rice', {}) } }
+    if (r.rare.dinnerDad && !a.dad && a.t > 0.9) { a.dad = true; emit(r, 'dad', { dinner: true }) }
+    if (a.t >= C.dinnerT) { r.rice = null; b.act = null; b.inv = 0; b.pose = 'rage'; b.poseT = 0.9; b.cool = 0.9; emit(r, 'say', { key: 'dinnerEnd' }); emit(r, 'dinnerEnd', {}) }
+    return
+  }
+  if (!a) {
+    const tgt = clamp(m.x, C.bossL, C.bossR), d = tgt - b.x
+    if (Math.abs(d) > 0.3) { b.x += Math.sign(d) * C.bossWalk * (b.phase === 3 ? 1.5 : 1) * dt; b.walkPhase += dt * 5; b.stepT -= dt; if (b.stepT <= 0) { b.stepT = 0.55; emit(r, 'momStep', {}) } }
+    if (b.poseT > 0) b.poseT -= dt; else b.pose = Math.abs(d) > 0.3 || b.phase > 1 ? idlePose2(b) : 'search'
+    b.cool -= dt
+    if (b.cool <= 0 && b.inv <= 0) {
+      // 水とおたまは重ねない（跳ぶと跳ばないが同時に来ると避けようがない）
+      const list = CYCLE2[b.phase], k = list[b.n % list.length], clash = k === 'ladle' ? 'water' : k === 'water' ? 'ladle' : null
+      if (!clash || !r.objs.some(o => o.k === clash)) { b.n++; startAct2(r, k) }
+    }
+    return
+  }
+  a.t += dt
+  switch (a.k) {
+    case 'flip':
+      if (a.t >= a.warn) {
+        r.objs.push({ id: r.id++, k: 'spat', t: 0, T: 0.5, x: a.tx }); emit(r, 'slam', { x: a.tx }); a.n++
+        if (a.n >= a.count) endAct2(r); else { a.t = a.warn - 0.62; a.tx = aimX(r) }
+      }
+      break
+    case 'oil':
+      if (a.t >= a.warn) { spawnOil(r); endAct2(r) }
+      break
+    case 'water':
+      if (a.t >= a.warn) {
+        r.objs.push({ id: r.id++, k: 'water', t: 0, x: C.arenaR - 1, v: b.phase === 3 ? -13 : -11, h: 2.3 }); emit(r, 'water', {}); a.n++
+        if (a.n >= a.count) endAct2(r); else a.t = a.warn - 0.85
+      }
+      break
+    case 'ladle':
+      if (a.t >= a.warn) endAct2(r)
+      break
+  }
+}
+
 // ------------------------------------------------------------ 走る区間
 function stepCourse(r, dt) {
-  const m = r.me, C = CFG
+  const m = r.me, C = r.C
   for (const [a, b] of C.tacks) if (m.x > a - 0.2 && m.x < b + 0.2 && m.y < 0.5) hurtMe(r, 'tack')
   const R = r.roomba
   if (R.alive) {
@@ -421,7 +588,13 @@ export function grade(r) {
   }
   let p = 0
   p += r.hp >= 3 ? 3 : r.hp === 2 ? 2 : 1
-  p += s.parries >= 5 ? 3 : s.parries >= 2 ? 2 : s.parries >= 1 ? 1 : 0
-  p += tt < 80 ? 3 : tt < 105 ? 2 : tt < 140 ? 1 : 0
+  if (r.stage === 2) {   // 2面は弾きの代わりにくしゃみの回数と弾きの合計。戦う時間は少し長め
+    const k = (s.sneezes || 0) + s.parries
+    p += k >= 9 ? 3 : k >= 6 ? 2 : k >= 2 ? 1 : 0
+    p += tt < 78 ? 3 : tt < 95 ? 2 : tt < 130 ? 1 : 0
+  } else {
+    p += s.parries >= 5 ? 3 : s.parries >= 2 ? 2 : s.parries >= 1 ? 1 : 0
+    p += tt < 80 ? 3 : tt < 105 ? 2 : tt < 140 ? 1 : 0
+  }
   return { key: p >= 8 ? 'S' : p >= 6 ? 'A' : p >= 4 ? 'B' : 'C', p, left: 0 }
 }

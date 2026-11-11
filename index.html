@@ -6,7 +6,7 @@
 <link rel="canonical" href="https://tom3games.com/play/kobito-vs-okan/">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>小人になっておかんと戦え | 体2cmの横スクロール バカゲー</title>
-<meta name="description" content="賞味期限切れのヨーグルトで体が2cmに。爪楊枝でおかんに挑む、ダウンロードなしの小人ゲーム。スリッパ、掃除機、猫をかわして、スマホのブラウザで遊べる横スクロールのバカゲー。">
+<meta name="description" content="賞味期限切れのヨーグルトで体が2cmに。爪楊枝でおかんに挑む、ダウンロードなしの小人ゲーム。スリッパ、掃除機、猫をかわし、2面は台所でフライ返しと水攻め。スマホのブラウザで遊べる横スクロールのバカゲー。">
 <meta property="og:type" content="website">
 <meta property="og:title" content="小人になっておかんと戦え">
 <meta property="og:description" content="体2cm。爪楊枝でおかんに挑む横スクロールのボス戦。スリッパを弾き返し、掃除機と猫をかわす。ダウンロードなしで遊べるバカゲー。">
@@ -19,14 +19,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=RocknRoll+One&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="style.css?v=2">
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
 <script>window.__bootN=0;window.__bootStep=function(){var n=++window.__bootN,b=document.getElementById('bootBar');if(b)b.style.transform='scaleX('+Math.min(1,n/6)+')'}</script>
 <link rel="modulepreload" href="vendor/three.core.min.js" onload="__bootStep()">
 <link rel="modulepreload" href="vendor/three.module.min.js" onload="__bootStep()">
-<link rel="modulepreload" href="js/game.js?v=4" onload="__bootStep()">
-<link rel="modulepreload" href="js/stage.js?v=1" onload="__bootStep()">
-<link rel="modulepreload" href="shared/sim.js?v=1" onload="__bootStep()">
+<link rel="modulepreload" href="js/game.js?v=5" onload="__bootStep()">
+<link rel="modulepreload" href="js/stage.js?v=2" onload="__bootStep()">
+<link rel="modulepreload" href="js/kitchen.js?v=1">
+<link rel="modulepreload" href="shared/sim.js?v=2" onload="__bootStep()">
 <link rel="preload" as="image" href="img/mom_search.webp" onload="__bootStep()">
 </head>
 <body>
@@ -36,6 +37,7 @@
   <button id="btnLang"></button>
   <p class="story" id="story"></p>
   <button id="btnStart"></button>
+  <button id="btnStage2"></button>
   <p id="credit"></p>
 </section>
 <section id="hud" class="hidden">
@@ -55,8 +57,10 @@
 </section>
 <section id="result" class="hidden">
   <canvas id="paper" width="720" height="1040"></canvas>
+  <button id="btnNext" class="hidden"></button>
   <div class="res"><button id="btnAgain">もう一回</button><a id="btnPost" target="_blank" rel="noopener">Xでポスト</a></div>
 </section>
+<section id="wipe" class="hidden"><i class="fl"></i><i class="fr"></i><div class="card"><p id="wipeHead"></p><p id="wipeStory"></p></div></section>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="btn" viewBox="0 0 100 100"><circle cx="50" cy="52" r="46" fill="#5d3f22" opacity=".45"/><circle cx="50" cy="48" r="46" fill="#efe3c7" stroke="#6d5332" stroke-width="3"/><circle cx="50" cy="48" r="37" fill="#f8f0db" stroke="#c9b48c" stroke-width="2"/></symbol></svg>
 <div id="boot">
   <svg viewBox="0 0 200 170" aria-hidden="true">
@@ -82,7 +86,7 @@ window.addEventListener('unhandledrejection',function(e){errs.push(String(e.reas
 setTimeout(function(){if(window.__okanReady)return;var d=document.createElement('div');d.id='bootErr';d.textContent='起動できませんでした\n'+errs.join('\n')+'\n'+navigator.userAgent;document.body.appendChild(d)},20000)})();
 </script>
 <script src="sfx.js?v=2"></script>
-<script type="module" src="js/game.js?v=4"></script>
+<script type="module" src="js/game.js?v=5"></script>
 <script src="support.js?v=4" data-ja="お菓子" data-en="a snack"></script>
 </body>
 </html>

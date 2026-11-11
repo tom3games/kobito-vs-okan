@@ -6,7 +6,7 @@ export const TXT = {
     start: 'たたかう', how: '遊び方', lang: 'English', again: 'もう一回', save: '画像を保存', post: 'Xでポスト', toTitle: 'タイトルへ', loading: '爪楊枝を削っています',
     howTitle: '冷蔵庫のメモ',
     howList: ['爪楊枝は勝手に飛ぶ。左右に動いて、跳んで、かわす', 'ダッシュの間は当たらない', 'ピンクの物は、空中でもう一回タップで弾き返せる', '床で近くにいると小指に刺さって1.5倍。高く跳ぶと顔に刺さって2倍', '予備動作を見る。赤い輪は落ちてくる場所'],
-    ok: 'わかった', paused: 'ちょっと休憩', resume: 'つづける', quit: 'やめる', credit: '効果音の一部 CC BY: Werstas、Gravity Sound。詳しくは CREDITS.md',
+    ok: 'わかった', paused: 'ちょっと休憩', resume: 'つづける', quit: 'やめる', credit: '効果音の一部 CC BY: Werstas、Gravity Sound、Thirunavukkarasye-Raveendran。詳しくは CREDITS.md',
     hintJump: '画びょうは跳ぶ', hintDash: 'ダッシュ中は当たらない', hintParry: '空中でもう一回タップ', hintMove: '右へ走る',
     sOkan: 'おかん', sDad: 'おとん',
     say: {
@@ -24,6 +24,25 @@ export const TXT = {
       close: ['おしいで賞', 'おかんの腰はもう限界でした。あと少しです。'], try: ['がんばりましょう', 'スリッパをよく見なさい。話はそれからです。'], more: ['ちゃんと聞きなさい', '赤い輪から離れなさい。あと爪楊枝は戻しなさい。'],
       by: { slip: 'スリッパ', sandal: 'おとんのサンダル', dust: '綿ぼこり', vac: '掃除機', cat: '猫', stomp: 'どすこい', tack: '画びょう', roomba: 'ルンバ' }, byLabel: 'やられた物'
     },
+    stage2: '2面 台所から', next: '台所へ進む', wipeHead: '2面 台所', wipeStory: 'ポケットのヨーグルトも\n期限切れやった。\n新品は台所の冷蔵庫の中。',
+    hintPit: '流しは跳ぶ', hintPepper: 'コショウにダッシュ', hintRice: 'ご飯つぶを取る', hintWater: '水は跳ぶ', hintLadle: 'おたまは床で待つ',
+    say2: {
+      intro: ['台所に入ったらアカン！', 'ここは私の城や！'], retry: ['また来たんか', 'まだおるんか！'],
+      flip: ['ほいっ！', 'ひっくり返したる！'], oil: ['油はねるで！', 'ウインナー焼けたで！'],
+      water: ['流したる！', '水攻めや！'], ladle: ['ほんでな、ちっさい虫がおってな', 'あ、ちょっと待ってな', 'え？今？虫退治や'],
+      phone: ['あ、もしもし田中さん？'], dinner: ['ご飯できたでー！'], dinnerEnd: ['食べてる場合ちゃうわ！'],
+      rice: ['それおとんのや！'], sneeze: ['ハ…ハックション！', 'ヘックション！'], sneezeEnd: ['誰や倒したん！'], pepperBack: ['コショウ戻しとこ'],
+      meSneeze: ['自分もくしゃみ'], fell: ['流しに落ちた'], toe: ['指はアカン！', '包丁より痛い！'],
+      ph2: ['あ、電話や'], ph3: ['もう怒ったで！！'], win: ['冷蔵庫…守れんかった…'], lose: ['生ゴミと一緒やで！', '三角コーナー行きや'], dadDinner: ['いただきます']
+    },
+    paper2: {
+      sub: '2cmの部　台所の巻', toe: '手の小指', sneeze: 'くしゃみさせた', unitS: '回',
+      S: ['大変よくできました', '冷蔵庫のヨーグルトは本当に新品です。小指は今も痛いです。'], A: ['よくできました', 'コショウを戻しなさい。台所が粉だらけです。'], B: ['もう少しがんばりましょう', '勝ったからって、つまみ食いしないこと。'], C: ['がんばりました', 'ギリギリでした。ご飯は普通の大きさで食べなさい。'],
+      close: ['おしいで賞', 'おかんの鼻はもう限界でした。あと少しです。'], try: ['がんばりましょう', '水が来たら跳びなさい。話はそれからです。'], more: ['ちゃんと聞きなさい', '台所で走らない。コショウを倒しなさい。'],
+      by: { spat: 'フライ返し', oil: '油はね', wiener: 'タコさんウインナー', water: '水', ladle: 'おたま', drain: '流し', roomba: 'ミニトマト' }
+    },
+    postWin2: (g, t) => `台所のおかんにも勝った。通知表は「${g}」、${t}秒。 #小人になっておかんと戦え #バカゲー`,
+    postLose2: p => `台所のおかんを倒すまで、あと${p}%だった。 #小人になっておかんと戦え #バカゲー`,
     postWin: (g, t) => `おかんに勝った。通知表は「${g}」、${t}秒。 #小人になっておかんと戦え #バカゲー`,
     postLose: p => `おかんを倒すまで、あと${p}%だった。 #小人になっておかんと戦え #バカゲー`
   },
@@ -33,7 +52,7 @@ export const TXT = {
     start: 'FIGHT', how: 'How to play', lang: '日本語', again: 'Again', save: 'Save image', post: 'Post on X', toTitle: 'Title', loading: 'Sharpening toothpicks',
     howTitle: 'Note on the fridge',
     howList: ['Toothpicks fire by themselves. Move and jump to dodge', 'You can\'t be hit while dashing', 'Tap again in the air to knock pink things back', 'Close on the floor: toe hits x1.5. High up: face hits x2', 'Watch her wind-up. A red ring marks where it lands'],
-    ok: 'Got it', paused: 'Break time', resume: 'Resume', quit: 'Quit', credit: 'Some sounds CC BY: Werstas, Gravity Sound. See CREDITS.md',
+    ok: 'Got it', paused: 'Break time', resume: 'Resume', quit: 'Quit', credit: 'Some sounds CC BY: Werstas, Gravity Sound, Thirunavukkarasye-Raveendran. See CREDITS.md',
     hintJump: 'Jump the thumbtacks', hintDash: 'Dashing dodges hits', hintParry: 'Tap again in the air', hintMove: 'Run right',
     sOkan: 'Mom', sDad: 'Dad',
     say: {
@@ -51,6 +70,25 @@ export const TXT = {
       close: ['So close', 'Mom\'s back was about to give out.'], try: ['Keep trying', 'Watch the slippers. Then we\'ll talk.'], more: ['Pay attention', 'Stay out of the red ring. And return those toothpicks.'],
       by: { slip: 'Slipper', sandal: 'Dad\'s sandal', dust: 'Dust bunny', vac: 'Vacuum', cat: 'Cat', stomp: 'Stomp', tack: 'Thumbtack', roomba: 'Robot vacuum' }, byLabel: 'Beaten by'
     },
+    stage2: 'Stage 2: Kitchen', next: 'On to the kitchen', wipeHead: 'STAGE 2  KITCHEN', wipeStory: 'The pocket yogurt was expired too. The fresh one is in the kitchen fridge.',
+    hintPit: 'Jump the sink', hintPepper: 'Dash into the pepper', hintRice: 'Grab the rice', hintWater: 'Jump the water', hintLadle: 'Stay low for the ladle',
+    say2: {
+      intro: ['Out of my kitchen!', 'This is MY castle!'], retry: ['You again?', 'Still here?!'],
+      flip: ['Flip!', 'Over you go!'], oil: ['Hot oil!', 'Sausage is ready!'],
+      water: ['Wash you away!', 'Water time!'], ladle: ['...and then a tiny bug showed up', 'Hold on a sec', 'Now? Busy squashing a bug'],
+      phone: ['Oh, hello, Mrs. Tanaka?'], dinner: ['DINNER\'S READY!'], dinnerEnd: ['No time to eat!'],
+      rice: ['That was Dad\'s!'], sneeze: ['Ah... AH-CHOO!', 'ACHOO!'], sneezeEnd: ['Who knocked that over?!'], pepperBack: ['Pepper goes back'],
+      meSneeze: ['You sneezed too'], fell: ['Fell in the sink'], toe: ['Not my finger!', 'Worse than a knife!'],
+      ph2: ['Oh, the phone'], ph3: ['NOW I\'M MAD!!'], win: ['My fridge... lost...'], lose: ['Into the food scraps!', 'Off to the sink corner'], dadDinner: ['Let\'s eat']
+    },
+    paper2: {
+      sub: '2 cm class: Kitchen', toe: 'Pinky finger', sneeze: 'Sneezes caused', unitS: '',
+      S: ['Excellent', 'The fridge yogurt really is fresh. My finger still hurts.'], A: ['Well done', 'Put the pepper back. The kitchen is all dusty.'], B: ['Try harder', 'Winning is no excuse to snack.'], C: ['You tried', 'That was close. Eat dinner at normal size.'],
+      close: ['So close', 'Mom\'s nose was about to give out.'], try: ['Keep trying', 'Jump when the water comes. Then we\'ll talk.'], more: ['Pay attention', 'No running in the kitchen. Knock over the pepper.'],
+      by: { spat: 'Spatula', oil: 'Hot oil', wiener: 'Octopus sausage', water: 'Water', ladle: 'Ladle', drain: 'Sink', roomba: 'Cherry tomato' }
+    },
+    postWin2: (g, t) => `I beat Mom in the kitchen too. Report card: "${g}", ${t} s. #TinyVsMom`,
+    postLose2: p => `Only ${p}% left to beat Kitchen Mom. #TinyVsMom`,
     postWin: (g, t) => `I beat Mom. Report card: "${g}", ${t} s. #TinyVsMom`,
     postLose: p => `Only ${p}% left to beat Mom. #TinyVsMom`
   }
